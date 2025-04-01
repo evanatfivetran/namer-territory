@@ -1,0 +1,1357 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/filter.css">
+<link rel="stylesheet" href="css/nouislider.min.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/tailDT.js"></script>
+<script src="js/nouislider.min.js"></script>
+<script src="js/wNumb.js"></script>
+<script src="https://dl.dropboxusercontent.com/scl/fi/8jtlosix5ahq450x4rlbu/Commercial_0.js?rlkey=5g7nc5h59ofvfanvv72zqib4i&st=zgxy7sb7"></script>
+<script src="https://dl.dropboxusercontent.com/scl/fi/6pakkk4lwa86trye852g5/Enterprise_1.js?rlkey=6a054ttg7aknlkqo1sw2978l4&st=ql0nrwy8"></script>
+
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[6.00257088911831,-168.49417382169298],[89.84086060280698,-50.616277758085516]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+            map.setMaxBounds(map.getBounds());
+        }
+        function pop_Commercial_0(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Commercial AE</th>\
+                        <td class="visible-with-data" id="Commercial AE">' + (feature.properties['Commercial AE'] !== null ? autolinker.link(String(feature.properties['Commercial AE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Commercial BDR</th>\
+                        <td class="visible-with-data" id="Commercial BDR">' + (feature.properties['Commercial BDR'] !== null ? autolinker.link(String(feature.properties['Commercial BDR']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Commercial Territory Name</th>\
+                        <td class="visible-with-data" id="Commercial Territory Name">' + (feature.properties['Commercial Territory Name'] !== null ? autolinker.link(String(feature.properties['Commercial Territory Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Commercial_0_0(feature) {
+            switch(String(feature.properties['Commercial AE'])) {
+                case 'Alex Audi':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(97,69,208,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Andrew Davey':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(87,179,240,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anthony Garrett':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(70,200,174,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Brett Wandfluh':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(230,121,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Cassandra Smigelsky':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(14,192,236,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Charles Winovich':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(122,208,139,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Cody Gumz':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(80,106,207,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Connor Ventura':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(65,217,156,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Devon Arscott':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(204,24,57,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Drew Rosenbloom':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(209,22,94,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Greg':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(136,30,207,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Hank Boudreau':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(131,225,168,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Joe Trupiano':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(193,121,209,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Jonathan Shull':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(149,207,110,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Kate Merkel':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(146,87,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Lance Hunter':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(225,75,37,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Macy Denardo':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(194,219,94,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Mark Mccloskey':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(202,165,109,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Max Prescott':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(230,48,227,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Megan Knight':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(99,224,68,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Melisa Kaytaz':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(164,240,50,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Merissa':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(222,101,20,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Michael Cooper':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(234,234,100,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Michael Pittman':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(204,63,61,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Norman Hernandez':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,102,195,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Patrick Dobbins':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(123,207,123,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Philip Pasquini':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(130,173,238,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Shana Cohen':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(236,196,38,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Vicente Sarverdesouza':
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(45,45,202,1.0)',
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_Commercial_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(124,229,229,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Commercial_0');
+        map.getPane('pane_Commercial_0').style.zIndex = 400;
+        map.getPane('pane_Commercial_0').style['mix-blend-mode'] = 'normal';
+        var layer_Commercial_0 = new L.geoJson(json_Commercial_0, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Commercial_0',
+            layerName: 'layer_Commercial_0',
+            pane: 'pane_Commercial_0',
+            onEachFeature: pop_Commercial_0,
+            style: style_Commercial_0_0,
+        });
+        bounds_group.addLayer(layer_Commercial_0);
+        function pop_Enterprise_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Enterprise AE</th>\
+                        <td class="visible-with-data" id="Enterprise AE">' + (feature.properties['Enterprise AE'] !== null ? autolinker.link(String(feature.properties['Enterprise AE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Enterprise BDR</th>\
+                        <td class="visible-with-data" id="Enterprise BDR">' + (feature.properties['Enterprise BDR'] !== null ? autolinker.link(String(feature.properties['Enterprise BDR']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Enterprise Territory Name</th>\
+                        <td class="visible-with-data" id="Enterprise Territory Name">' + (feature.properties['Enterprise Territory Name'] !== null ? autolinker.link(String(feature.properties['Enterprise Territory Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Enterprise_1_0(feature) {
+            switch(String(feature.properties['Enterprise AE'])) {
+                case 'Adam Goldberg':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(71,200,108,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Alex Humbert':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(80,203,42,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Anna Eatherton':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(229,90,206,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Ariel Rassler':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(225,113,15,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Bob Monagan':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(130,215,46,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Brian Paris':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(55,77,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Erika Chapman':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(212,107,224,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Francois Ross':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(160,121,223,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Harry Snyder':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(51,30,210,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Jack Pendergast':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(213,133,113,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Jimmy Dahlan':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(181,114,218,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Jonathan Roberts':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(167,208,42,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Marc Harrell':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(139,177,234,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Mark Bertolino':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(216,30,138,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Ryan Cunningham':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(228,130,161,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Ryan Henderson':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,14,24,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Santiago':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,206,108,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sarah':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(20,161,237,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sean Rooney':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(221,190,106,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Shane':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(107,209,110,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Shannon Egleston':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(28,227,138,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Shawn Lancaster':
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(65,218,187,1.0)',
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_Enterprise_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(62,210,223,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Enterprise_1');
+        map.getPane('pane_Enterprise_1').style.zIndex = 401;
+        map.getPane('pane_Enterprise_1').style['mix-blend-mode'] = 'normal';
+        var layer_Enterprise_1 = new L.geoJson(json_Enterprise_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Enterprise_1',
+            layerName: 'layer_Enterprise_1',
+            pane: 'pane_Enterprise_1',
+            onEachFeature: pop_Enterprise_1,
+            style: style_Enterprise_1_0,
+        });
+        bounds_group.addLayer(layer_Enterprise_1);
+        map.addLayer(layer_Enterprise_1);
+        var overlaysTree = [
+        {label: '<b>Territory</b>', selectAllCheckbox: true, children: [
+            {label: 'Enterprise<br /><table><tr><td style="text-align: center;"><img src="legend/Enterprise_1_AdamGoldberg0.png" /></td><td>Adam Goldberg</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_AlexHumbert1.png" /></td><td>Alex Humbert</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_AnnaEatherton2.png" /></td><td>Anna Eatherton</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_ArielRassler3.png" /></td><td>Ariel Rassler</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_BobMonagan4.png" /></td><td>Bob Monagan</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_BrianParis5.png" /></td><td>Brian Paris</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_ErikaChapman6.png" /></td><td>Erika Chapman</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_FrancoisRoss7.png" /></td><td>Francois Ross</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_HarrySnyder8.png" /></td><td>Harry Snyder</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_JackPendergast9.png" /></td><td>Jack Pendergast</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_JimmyDahlan10.png" /></td><td>Jimmy Dahlan</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_JonathanRoberts11.png" /></td><td>Jonathan Roberts</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_MarcHarrell12.png" /></td><td>Marc Harrell</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_MarkBertolino13.png" /></td><td>Mark Bertolino</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_RyanCunningham14.png" /></td><td>Ryan Cunningham</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_RyanHenderson15.png" /></td><td>Ryan Henderson</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_Santiago16.png" /></td><td>Santiago</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_Sarah17.png" /></td><td>Sarah</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_SeanRooney18.png" /></td><td>Sean Rooney</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_Shane19.png" /></td><td>Shane</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_ShannonEgleston20.png" /></td><td>Shannon Egleston</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_ShawnLancaster21.png" /></td><td>Shawn Lancaster</td></tr><tr><td style="text-align: center;"><img src="legend/Enterprise_1_22.png" /></td><td></td></tr></table>', layer: layer_Enterprise_1},
+            {label: 'Commercial<br /><table><tr><td style="text-align: center;"><img src="legend/Commercial_0_AlexAudi0.png" /></td><td>Alex Audi</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_AndrewDavey1.png" /></td><td>Andrew Davey</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_AnthonyGarrett2.png" /></td><td>Anthony Garrett</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_BrettWandfluh3.png" /></td><td>Brett Wandfluh</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_CassandraSmigelsky4.png" /></td><td>Cassandra Smigelsky</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_CharlesWinovich5.png" /></td><td>Charles Winovich</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_CodyGumz6.png" /></td><td>Cody Gumz</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_ConnorVentura7.png" /></td><td>Connor Ventura</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_DevonArscott8.png" /></td><td>Devon Arscott</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_DrewRosenbloom9.png" /></td><td>Drew Rosenbloom</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_Greg10.png" /></td><td>Greg</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_HankBoudreau11.png" /></td><td>Hank Boudreau</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_JoeTrupiano12.png" /></td><td>Joe Trupiano</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_JonathanShull13.png" /></td><td>Jonathan Shull</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_KateMerkel14.png" /></td><td>Kate Merkel</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_LanceHunter15.png" /></td><td>Lance Hunter</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_MacyDenardo16.png" /></td><td>Macy Denardo</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_MarkMccloskey17.png" /></td><td>Mark Mccloskey</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_MaxPrescott18.png" /></td><td>Max Prescott</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_MeganKnight19.png" /></td><td>Megan Knight</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_MelisaKaytaz20.png" /></td><td>Melisa Kaytaz</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_Merissa21.png" /></td><td>Merissa</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_MichaelCooper22.png" /></td><td>Michael Cooper</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_MichaelPittman23.png" /></td><td>Michael Pittman</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_NormanHernandez24.png" /></td><td>Norman Hernandez</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_PatrickDobbins25.png" /></td><td>Patrick Dobbins</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_PhilipPasquini26.png" /></td><td>Philip Pasquini</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_ShanaCohen27.png" /></td><td>Shana Cohen</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_VicenteSarverdesouza28.png" /></td><td>Vicente Sarverdesouza</td></tr><tr><td style="text-align: center;"><img src="legend/Commercial_0_29.png" /></td><td></td></tr></table>', layer: layer_Commercial_0},]},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: false, 
+        });
+        lay.addTo(map);
+		document.addEventListener("DOMContentLoaded", function() {
+            // set new Layers List height which considers toggle icon
+            function newLayersListHeight() {
+                var layerScrollbarElement = document.querySelector('.leaflet-control-layers-scrollbar');
+                if (layerScrollbarElement) {
+                    var layersListElement = document.querySelector('.leaflet-control-layers-list');
+                    var originalHeight = layersListElement.style.height 
+                        || window.getComputedStyle(layersListElement).height;
+                    var newHeight = parseFloat(originalHeight) - 50;
+                    layersListElement.style.height = newHeight + 'px';
+                }
+            }
+            var isLayersListExpanded = true;
+            var controlLayersElement = document.querySelector('.leaflet-control-layers');
+            var toggleLayerControl = document.querySelector('.leaflet-control-layers-toggle');
+            // toggle Collapsed/Expanded and apply new Layers List height
+            toggleLayerControl.addEventListener('click', function() {
+                if (isLayersListExpanded) {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                } else {
+                    controlLayersElement.classList.add('leaflet-control-layers-expanded');
+                }
+                isLayersListExpanded = !isLayersListExpanded;
+                newLayersListHeight()
+            });	
+			// apply new Layers List height if toggle layerstree
+			if (controlLayersElement) {
+				controlLayersElement.addEventListener('click', function(event) {
+					var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
+					if (toggleLayerHeaderPointer) {
+						newLayersListHeight();
+					}
+				});
+			}
+            // Collapsed/Expanded at Start to apply new height
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            // Collapsed touch/small screen
+            var isSmallScreen = window.innerWidth < 650;
+            if (isSmallScreen) {
+                setTimeout(function() {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                    isLayersListExpanded = !isLayersListExpanded;
+                }, 500);
+            }  
+        });       
+        setBounds();
+        var mapDiv = document.getElementById('map');
+        var row = document.createElement('div');
+        row.className="row";
+        row.id="all";
+        row.style.height = "100%";
+        var col1 = document.createElement('div');
+        col1.className="col9";
+        col1.id = "mapWindow";
+        col1.style.height = "99%";
+        col1.style.width = "80%";
+        col1.style.display = "inline-block";
+        var col2 = document.createElement('div');
+        col2.className="col3";
+        col2.id = "menu";
+        col2.style.display = "inline-block";
+        mapDiv.parentNode.insertBefore(row, mapDiv);
+        document.getElementById("all").appendChild(col1);
+        document.getElementById("all").appendChild(col2);
+        col1.appendChild(mapDiv)
+        var Filters = {"Commercial BDR": "str","Commercial AE": "str","Enterprise BDR": "str","Enterprise AE": "str"};
+        function filterFunc() {
+          map.eachLayer(function(lyr){
+          if ("options" in lyr && "dataVar" in lyr["options"]){
+            features = this[lyr["options"]["dataVar"]].features.slice(0);
+            try{
+              for (key in Filters){
+                keyS = key.replace(/[^a-zA-Z0-9_]/g, "")
+                if (Filters[key] == "str" || Filters[key] == "bool"){
+                  var selection = [];
+                  var options = document.getElementById("sel_" + keyS).options
+                  for (var i=0; i < options.length; i++) {
+                    if (options[i].selected) selection.push(options[i].value);
+                  }
+                    try{
+                      if (key in features[0].properties){
+                        for (i = features.length - 1;
+                          i >= 0; --i){
+                          if (selection.indexOf(
+                          features[i].properties[key])<0
+                          && selection.length>0) {
+                          features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                  }
+                }
+                if (Filters[key] == "int"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (parseInt(features[i].properties[key])
+                          < sliderVals[0]
+                          || parseInt(features[i].properties[key])
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "real"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (features[i].properties[key]
+                          < sliderVals[0]
+                          || features[i].properties[key]
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "date"
+                  || Filters[key] == "datetime"
+                  || Filters[key] == "time"){
+                  try{
+                    if (key in features[0].properties){
+                      HTMLkey = key.replace(/[&\/\\#,+()$~%.'":*?<>{} ]/g, '');
+                      startdate = document.getElementById("dat_" +
+                        HTMLkey + "_date1").value.replace(" ", "T");
+                      enddate = document.getElementById("dat_" +
+                        HTMLkey + "_date2").value.replace(" ", "T");
+                      for (i = features.length - 1; i >= 0; --i){
+                        if (features[i].properties[key] < startdate
+                          || features[i].properties[key] > enddate){
+                          features.splice(i,1);
+                        }
+                      }
+                    }
+                  } catch(err){
+                  }
+                }
+              }
+            } catch(err){
+            }
+          this[lyr["options"]["layerName"]].clearLayers();
+          this[lyr["options"]["layerName"]].addData(features);
+          }
+          })
+        }
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_CommercialBDR = document.createElement('div');
+            div_CommercialBDR.id = "div_CommercialBDR";
+            div_CommercialBDR.className= "filterselect";
+            document.getElementById("menu").appendChild(div_CommercialBDR);
+            sel_CommercialBDR = document.createElement('select');
+            sel_CommercialBDR.multiple = true;
+            sel_CommercialBDR.size = 7;
+            sel_CommercialBDR.id = "sel_CommercialBDR";
+            var CommercialBDR_options_str = "<option value='' unselected></option>";
+            sel_CommercialBDR.onchange = function(){filterFunc()};
+            CommercialBDR_options_str  += '<option value="NULL">NULL</option>';
+            CommercialBDR_options_str  += '<option value="Benjamin Poxson">Benjamin Poxson</option>';
+            CommercialBDR_options_str  += '<option value="Bryce Desostoa">Bryce Desostoa</option>';
+            CommercialBDR_options_str  += '<option value="Jake Thein">Jake Thein</option>';
+            CommercialBDR_options_str  += '<option value="Joseph Creen">Joseph Creen</option>';
+            CommercialBDR_options_str  += '<option value="Marymaxine Fuselier">Marymaxine Fuselier</option>';
+            CommercialBDR_options_str  += '<option value="Michael Franzese">Michael Franzese</option>';
+            sel_CommercialBDR.innerHTML = CommercialBDR_options_str;
+            div_CommercialBDR.appendChild(sel_CommercialBDR);
+            var lab_CommercialBDR = document.createElement('div');
+            lab_CommercialBDR.innerHTML = 'Commercial BDR';
+            lab_CommercialBDR.className = 'filterlabel';
+            div_CommercialBDR.appendChild(lab_CommercialBDR);
+            var reset_CommercialBDR = document.createElement('div');
+            reset_CommercialBDR.innerHTML = 'clear filter';
+            reset_CommercialBDR.className = 'filterlabel';
+            reset_CommercialBDR.onclick = function() {
+                var options = document.getElementById("sel_CommercialBDR").options;
+                for (var i=0; i < options.length; i++) {
+                    options[i].selected = false;
+                }
+                filterFunc();
+            };
+            div_CommercialBDR.appendChild(reset_CommercialBDR);
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_CommercialAE = document.createElement('div');
+            div_CommercialAE.id = "div_CommercialAE";
+            div_CommercialAE.className= "filterselect";
+            document.getElementById("menu").appendChild(div_CommercialAE);
+            sel_CommercialAE = document.createElement('select');
+            sel_CommercialAE.multiple = true;
+            sel_CommercialAE.size = 10;
+            sel_CommercialAE.id = "sel_CommercialAE";
+            var CommercialAE_options_str = "<option value='' unselected></option>";
+            sel_CommercialAE.onchange = function(){filterFunc()};
+            CommercialAE_options_str  += '<option value="NULL">NULL</option>';
+            CommercialAE_options_str  += '<option value="Alex Audi">Alex Audi</option>';
+            CommercialAE_options_str  += '<option value="Andrew Davey">Andrew Davey</option>';
+            CommercialAE_options_str  += '<option value="Anthony Garrett">Anthony Garrett</option>';
+            CommercialAE_options_str  += '<option value="Brett Wandfluh">Brett Wandfluh</option>';
+            CommercialAE_options_str  += '<option value="Cassandra Smigelsky">Cassandra Smigelsky</option>';
+            CommercialAE_options_str  += '<option value="Charles Winovich">Charles Winovich</option>';
+            CommercialAE_options_str  += '<option value="Cody Gumz">Cody Gumz</option>';
+            CommercialAE_options_str  += '<option value="Connor Ventura">Connor Ventura</option>';
+            CommercialAE_options_str  += '<option value="Devon Arscott">Devon Arscott</option>';
+            CommercialAE_options_str  += '<option value="Drew Rosenbloom">Drew Rosenbloom</option>';
+            CommercialAE_options_str  += '<option value="Greg">Greg</option>';
+            CommercialAE_options_str  += '<option value="Hank Boudreau">Hank Boudreau</option>';
+            CommercialAE_options_str  += '<option value="Joe Trupiano">Joe Trupiano</option>';
+            CommercialAE_options_str  += '<option value="Jonathan Shull">Jonathan Shull</option>';
+            CommercialAE_options_str  += '<option value="Kate Merkel">Kate Merkel</option>';
+            CommercialAE_options_str  += '<option value="Lance Hunter">Lance Hunter</option>';
+            CommercialAE_options_str  += '<option value="Macy Denardo">Macy Denardo</option>';
+            CommercialAE_options_str  += '<option value="Mark Mccloskey">Mark Mccloskey</option>';
+            CommercialAE_options_str  += '<option value="Max Prescott">Max Prescott</option>';
+            CommercialAE_options_str  += '<option value="Megan Knight">Megan Knight</option>';
+            CommercialAE_options_str  += '<option value="Melisa Kaytaz">Melisa Kaytaz</option>';
+            CommercialAE_options_str  += '<option value="Merissa">Merissa</option>';
+            CommercialAE_options_str  += '<option value="Michael Cooper">Michael Cooper</option>';
+            CommercialAE_options_str  += '<option value="Michael Pittman">Michael Pittman</option>';
+            CommercialAE_options_str  += '<option value="Norman Hernandez">Norman Hernandez</option>';
+            CommercialAE_options_str  += '<option value="Patrick Dobbins">Patrick Dobbins</option>';
+            CommercialAE_options_str  += '<option value="Philip Pasquini">Philip Pasquini</option>';
+            CommercialAE_options_str  += '<option value="Shana Cohen">Shana Cohen</option>';
+            CommercialAE_options_str  += '<option value="Vicente Sarverdesouza">Vicente Sarverdesouza</option>';
+            sel_CommercialAE.innerHTML = CommercialAE_options_str;
+            div_CommercialAE.appendChild(sel_CommercialAE);
+            var lab_CommercialAE = document.createElement('div');
+            lab_CommercialAE.innerHTML = 'Commercial AE';
+            lab_CommercialAE.className = 'filterlabel';
+            div_CommercialAE.appendChild(lab_CommercialAE);
+            var reset_CommercialAE = document.createElement('div');
+            reset_CommercialAE.innerHTML = 'clear filter';
+            reset_CommercialAE.className = 'filterlabel';
+            reset_CommercialAE.onclick = function() {
+                var options = document.getElementById("sel_CommercialAE").options;
+                for (var i=0; i < options.length; i++) {
+                    options[i].selected = false;
+                }
+                filterFunc();
+            };
+            div_CommercialAE.appendChild(reset_CommercialAE);
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_EnterpriseBDR = document.createElement('div');
+            div_EnterpriseBDR.id = "div_EnterpriseBDR";
+            div_EnterpriseBDR.className= "filterselect";
+            document.getElementById("menu").appendChild(div_EnterpriseBDR);
+            sel_EnterpriseBDR = document.createElement('select');
+            sel_EnterpriseBDR.multiple = true;
+            sel_EnterpriseBDR.size = 10;
+            sel_EnterpriseBDR.id = "sel_EnterpriseBDR";
+            var EnterpriseBDR_options_str = "<option value='' unselected></option>";
+            sel_EnterpriseBDR.onchange = function(){filterFunc()};
+            EnterpriseBDR_options_str  += '<option value="NULL">NULL</option>';
+            EnterpriseBDR_options_str  += '<option value="#VALUE!">#VALUE!</option>';
+            EnterpriseBDR_options_str  += '<option value="Calvin Choi">Calvin Choi</option>';
+            EnterpriseBDR_options_str  += '<option value="Cameron Horning">Cameron Horning</option>';
+            EnterpriseBDR_options_str  += '<option value="Carly Mcginty">Carly Mcginty</option>';
+            EnterpriseBDR_options_str  += '<option value="Dev Shah">Dev Shah</option>';
+            EnterpriseBDR_options_str  += '<option value="Isaac Pyle">Isaac Pyle</option>';
+            EnterpriseBDR_options_str  += '<option value="Patrick Abram">Patrick Abram</option>';
+            EnterpriseBDR_options_str  += '<option value="Reece Davidson">Reece Davidson</option>';
+            EnterpriseBDR_options_str  += '<option value="Tammy Vo">Tammy Vo</option>';
+            sel_EnterpriseBDR.innerHTML = EnterpriseBDR_options_str;
+            div_EnterpriseBDR.appendChild(sel_EnterpriseBDR);
+            var lab_EnterpriseBDR = document.createElement('div');
+            lab_EnterpriseBDR.innerHTML = 'Enterprise BDR';
+            lab_EnterpriseBDR.className = 'filterlabel';
+            div_EnterpriseBDR.appendChild(lab_EnterpriseBDR);
+            var reset_EnterpriseBDR = document.createElement('div');
+            reset_EnterpriseBDR.innerHTML = 'clear filter';
+            reset_EnterpriseBDR.className = 'filterlabel';
+            reset_EnterpriseBDR.onclick = function() {
+                var options = document.getElementById("sel_EnterpriseBDR").options;
+                for (var i=0; i < options.length; i++) {
+                    options[i].selected = false;
+                }
+                filterFunc();
+            };
+            div_EnterpriseBDR.appendChild(reset_EnterpriseBDR);
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_EnterpriseAE = document.createElement('div');
+            div_EnterpriseAE.id = "div_EnterpriseAE";
+            div_EnterpriseAE.className= "filterselect";
+            document.getElementById("menu").appendChild(div_EnterpriseAE);
+            sel_EnterpriseAE = document.createElement('select');
+            sel_EnterpriseAE.multiple = true;
+            sel_EnterpriseAE.size = 10;
+            sel_EnterpriseAE.id = "sel_EnterpriseAE";
+            var EnterpriseAE_options_str = "<option value='' unselected></option>";
+            sel_EnterpriseAE.onchange = function(){filterFunc()};
+            EnterpriseAE_options_str  += '<option value="NULL">NULL</option>';
+            EnterpriseAE_options_str  += '<option value="Adam Goldberg">Adam Goldberg</option>';
+            EnterpriseAE_options_str  += '<option value="Alex Humbert">Alex Humbert</option>';
+            EnterpriseAE_options_str  += '<option value="Anna Eatherton">Anna Eatherton</option>';
+            EnterpriseAE_options_str  += '<option value="Ariel Rassler">Ariel Rassler</option>';
+            EnterpriseAE_options_str  += '<option value="Bob Monagan">Bob Monagan</option>';
+            EnterpriseAE_options_str  += '<option value="Brian Paris">Brian Paris</option>';
+            EnterpriseAE_options_str  += '<option value="Erika Chapman">Erika Chapman</option>';
+            EnterpriseAE_options_str  += '<option value="Francois Ross">Francois Ross</option>';
+            EnterpriseAE_options_str  += '<option value="Harry Snyder">Harry Snyder</option>';
+            EnterpriseAE_options_str  += '<option value="Jack Pendergast">Jack Pendergast</option>';
+            EnterpriseAE_options_str  += '<option value="Jimmy Dahlan">Jimmy Dahlan</option>';
+            EnterpriseAE_options_str  += '<option value="Jonathan Roberts">Jonathan Roberts</option>';
+            EnterpriseAE_options_str  += '<option value="Marc Harrell">Marc Harrell</option>';
+            EnterpriseAE_options_str  += '<option value="Mark Bertolino">Mark Bertolino</option>';
+            EnterpriseAE_options_str  += '<option value="Ryan Cunningham">Ryan Cunningham</option>';
+            EnterpriseAE_options_str  += '<option value="Ryan Henderson">Ryan Henderson</option>';
+            EnterpriseAE_options_str  += '<option value="Santiago">Santiago</option>';
+            EnterpriseAE_options_str  += '<option value="Sarah">Sarah</option>';
+            EnterpriseAE_options_str  += '<option value="Sean Rooney">Sean Rooney</option>';
+            EnterpriseAE_options_str  += '<option value="Shane">Shane</option>';
+            EnterpriseAE_options_str  += '<option value="Shannon Egleston">Shannon Egleston</option>';
+            EnterpriseAE_options_str  += '<option value="Shawn Lancaster">Shawn Lancaster</option>';
+            sel_EnterpriseAE.innerHTML = EnterpriseAE_options_str;
+            div_EnterpriseAE.appendChild(sel_EnterpriseAE);
+            var lab_EnterpriseAE = document.createElement('div');
+            lab_EnterpriseAE.innerHTML = 'Enterprise AE';
+            lab_EnterpriseAE.className = 'filterlabel';
+            div_EnterpriseAE.appendChild(lab_EnterpriseAE);
+            var reset_EnterpriseAE = document.createElement('div');
+            reset_EnterpriseAE.innerHTML = 'clear filter';
+            reset_EnterpriseAE.className = 'filterlabel';
+            reset_EnterpriseAE.onclick = function() {
+                var options = document.getElementById("sel_EnterpriseAE").options;
+                for (var i=0; i < options.length; i++) {
+                    options[i].selected = false;
+                }
+                filterFunc();
+            };
+            div_EnterpriseAE.appendChild(reset_EnterpriseAE);
+        </script>
+    </body>
+</html>
